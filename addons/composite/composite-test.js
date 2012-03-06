@@ -54,7 +54,8 @@ module( "testStart tests", (function(){
 test( "running message printed", function(){
 	var hello = "hello world",
 	expected = "Running " + hello + "...<br>&nbsp;";
-	QUnit.testStart( {name: hello} );
+	callCallbacks('testStart', {name: hello})
+	
 	equal( this.fakeElem.innerHTML, expected, "innerHTML was set correctly by testStart" );
 });
 
@@ -77,7 +78,7 @@ module( "testDone tests", (function(){
 })());
 
 test( "test expansions are hidden", function(){
-	QUnit.testDone();
+	callCallbacks('testDone');
 	equal( this.fakeElem.children[0].style.display, "none", "first ol display is none" );
 	equal( this.fakeElem.children[1].style.display, "none", "second ol display is none" );
 });
@@ -85,7 +86,7 @@ test( "test expansions are hidden", function(){
 test( "non-ol elements aren't hidden", function(){
 	this.fakeElem.appendChild( document.createElement( "span" ) );
 
-	QUnit.testDone();
+	callCallbacks('testDone');
 	notEqual( this.fakeElem.children[2].style.display, "none", "first ol display is none" );
 });
 
@@ -141,14 +142,6 @@ test( "iframe only created once", function(){
 	equal( this.appendChildCall.called, 1, "append child only ever called once" );
 });
 
-test( "iframe's QUnit object is modified when iframe source loads", function(){
-	var before = this.iframeQUnitObject,
-		after;
-	QUnit.runSuite();
-	this.iframeLoad.callback();
-	notEqual( before, after, "iframe's qunit object is modified upon load");
-});
-
 test( "iframe src set to suite passed", function(){
 	var pages = ["testing.html", "subsuiteRunner.html"];
 	QUnit.runSuite( pages[0] );
@@ -157,3 +150,11 @@ test( "iframe src set to suite passed", function(){
 	QUnit.runSuite( pages[1] );
 	equal( this.setAttributeCall.args[1], pages[1], "src attribute set" );
 });
+
+function callCallbacks(key, args){
+	var callbacks = QUnit.config[key];
+	
+	for( var i = 0; i < callbacks.length; i++ ) {
+		callbacks[i].call( QUnit, args );
+	}
+}

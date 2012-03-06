@@ -2,6 +2,23 @@
 
 var subsuiteFrame;
 
+	QUnit.testStart(function( data ) {
+		// update the test status to show which test suite is running
+		QUnit.id( "qunit-testresult" ).innerHTML = "Running " + data.name + "...<br>&nbsp;";
+	});
+	QUnit.testDone(function() {
+		var current = QUnit.id( this.config.current.id ),
+			children = current.children;
+
+		// undo the auto-expansion of failed tests
+		for ( var i = 0; i < children.length; i++ ) {
+			if ( children[i].nodeName === "OL" ) {
+				children[i].style.display = "none";
+			}
+		}
+	});
+
+
 QUnit.extend( QUnit, {
 	testSuites: function( suites ) {
 		for ( var i = 0; i < suites.length; i++ ) {
@@ -16,23 +33,6 @@ QUnit.extend( QUnit, {
 		};
 	},
 
-	testStart: function( data ) {
-		// update the test status to show which test suite is running
-		QUnit.id( "qunit-testresult" ).innerHTML = "Running " + data.name + "...<br>&nbsp;";
-	},
-
-	testDone: function() {
-		var current = QUnit.id( this.config.current.id ),
-			children = current.children;
-
-		// undo the auto-expansion of failed tests
-		for ( var i = 0; i < children.length; i++ ) {
-			if ( children[i].nodeName === "OL" ) {
-				children[i].style.display = "none";
-			}
-		}
-	},
-
 	runSuite: function( suite ) {
 		var body = document.getElementsByTagName( "body" )[0],
 			iframe = subsuiteFrame = document.createElement( "iframe" ),
@@ -45,15 +45,15 @@ QUnit.extend( QUnit, {
 			var module, test,
 				count = 0;
 
+			iframeWin.QUnit.testStart(function( data ) {
+				// capture test name for messages
+				test = data.name;
+			});
+			
 			QUnit.extend( iframeWin.QUnit, {
 				moduleStart: function( data ) {
 					// capture module name for messages
 					module = data.name;
-				},
-
-				testStart: function( data ) {
-					// capture test name for messages
-					test = data.name;
 				},
 
 				log: function( data ) {
